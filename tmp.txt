@@ -1,0 +1,2 @@
+docker run -v kube-data:/root --rm -it kargo ansible-playbook -i /root/inventory.cfg cluster.yml -b -v --private-key=/root/kube_rsa -u ajn
+docker run --rm -it -v kube-data:/usr/local/share/kargo kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_rsa -u ajn -e deploy_netchecker=true -e kube_network_plugin=flannel
