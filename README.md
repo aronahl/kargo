@@ -1,6 +1,6 @@
-#Easy Kubernetes Cluster on Ubuntu 16.04 Using Kargo v2.1.1.
+# Easy Kubernetes Cluster on Ubuntu 16.04 Using Kargo v2.1.1.
 
-##Requirements
+## Requirements
 1. Three Ubuntu 16.04 VMs or Bare Metal installs.  I used Parallels VMs with 4G RAM and 4 Cores each.
 	* The following packages should be installed:
 		* python
@@ -11,7 +11,7 @@
 	* You should have a private ssh key which gives you access to the aforementioned user.
 1. A local docker install with the aronahl/kargo image.
 
-##Steps
+## Steps
 1. Configure the inventory of your three machines.  Assuming the IP addresses of your three machines are 10.0.0.1, 10.0.0.2, and 10.0.0.3:
 
 
