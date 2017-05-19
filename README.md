@@ -14,7 +14,6 @@
 ## Steps
 1. Configure the inventory of your three machines.  Assuming the IP addresses of your three machines are 10.0.0.1, 10.0.0.2, and 10.0.0.3:
 
-
 	```bash
 	$ docker run --rm -it -v kube-data:/usr/local/share/kargo aronahl/kargo python3 ./contrib/inventory_builder/inventory.py 10.0.0.1 10.0.0.2 10.0.0.3
 	```
