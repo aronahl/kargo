@@ -86,4 +86,4 @@
 	$ kubectl proxy
 	```
 	
-	The browse to http://localhost:8001/ui
+	Browse to http://localhost:8001/ui
