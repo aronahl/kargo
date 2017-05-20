@@ -78,3 +78,12 @@
 	netchecker-agent-z1zgm           1/1       Running   0          1h
 	netchecker-server                1/1       Running   0          1h
 	```
+
+1. Maybe install the UI.
+
+	```bash
+	$ kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.5.1/src/deploy/kubernetes-dashboard.yaml
+	$ kubectl proxy
+	```
+	
+	The browse to http://localhost:8001/ui
