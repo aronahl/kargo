@@ -30,16 +30,10 @@
 1. Configure the cluster.
 
     ```bash
-    $ docker run --rm -it -v kube-data:/usr/local/share/kargo aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e deploy_netchecker=true -e kube_version=v1.6.4
+    $ docker run --rm -it -v kube-data:/usr/local/share/kargo aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.6.4
     ```
     If it fails, run it a second time (yuck).
     
-1. Validate networking
-    * SSH to the master node and run
-
-    ```bash
-    curl http://localhost:31081/api/v1/connectivity_check
-    ```
 1. Set up your local kubectl client in ~/.kube/config
 
     **Caution:** This is insecure, hence the term *insecure*.
@@ -70,13 +64,6 @@
     ```bash
     $ kubectl get pods
     NAME                             READY     STATUS    RESTARTS   AGE
-    netchecker-agent-d7fj3           1/1       Running   0          1h
-    netchecker-agent-hostnet-mf3hh   1/1       Running   0          1h
-    netchecker-agent-hostnet-v0f1h   1/1       Running   0          1h
-    netchecker-agent-hostnet-vs4nj   1/1       Running   0          1h
-    netchecker-agent-sdr64           1/1       Running   0          1h
-    netchecker-agent-z1zgm           1/1       Running   0          1h
-    netchecker-server                1/1       Running   0          1h
     ```
 
 1. Maybe install the UI.
