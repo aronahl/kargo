@@ -18,7 +18,7 @@ RUN python3.6 setup.py install
 WORKDIR /tmp/
 RUN rm -fr jinja
 WORKDIR /usr/local/share
-RUN git clone --branch v2.1.1 --depth 1 https://github.com/kubernetes-incubator/kargo
+RUN git clone --branch v2.1.2 --depth 1 https://github.com/kubernetes-incubator/kubespray
 RUN apt-get install -fy python3-netaddr
 VOLUME /usr/local/share/kargo
 WORKDIR /usr/local/share/kargo
