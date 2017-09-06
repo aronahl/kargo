@@ -1,4 +1,4 @@
-# Easy Kubernetes Cluster on Ubuntu 16.04 Using Kubespray (Formerly Kargo) v2.1.2.
+# Easy Kubernetes Cluster on Ubuntu 16.04 Using Kubespray (Formerly Kargo) v2.2.0.
 
 ## Requirements
 1. Three Ubuntu 16.04 VMs or Bare Metal installs.  I used Parallels VMs with 4G RAM and 4 Cores each.
@@ -15,7 +15,7 @@
 1. Configure the inventory of your three machines.  Assuming the IP addresses of your three machines are 10.0.0.1, 10.0.0.2, and 10.0.0.3:
 
     ```bash
-    $ docker run --rm -it -v kube-data:/usr/local/share/kargo aronahl/kargo python3 ./contrib/inventory_builder/inventory.py 10.0.0.1 10.0.0.2 10.0.0.3
+    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo python3 ./contrib/inventory_builder/inventory.py 10.0.0.1 10.0.0.2 10.0.0.3
     ```
     
     This will create a kube-data docker volume populated with Kargo's ansible files and your new inventory config file.  Be careful to avoid having an existing config in the volume, or you will end up running the buildout against hosts that you don't intent to change (or that may not exist).
@@ -30,13 +30,10 @@
 1. Configure the cluster.
 
     ```bash
-    $ docker run --rm -it -v kube-data:/usr/local/share/kargo aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.6.7
+    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.7.3
     ```
-    If it fails or locks up, run it a second time (yuck).
     
-1. Set up your local kubectl client in ~/.kube/config
-
-    **Caution:** This is insecure, hence the term *insecure*.
+1. Set up your local **unsecure** kubectl client in ~/.kube/config
 
     ```yaml
     apiVersion: v1
@@ -59,6 +56,38 @@
         password: changeme
         username: kube
     ```
+1. Download the certificate for your cluster
+
+    ```bash
+    $ kubectl run ca --image=busybox --restart=Never --command cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    $ kubectl logs ca > ~/.kube/clusty.ca
+    $ kubectl delete pod ca
+    ```
+
+1. Configure kubectl for **secure** access in ~/.kube/config
+
+    ```yaml
+    apiVersion: v1
+    clusters:
+    - cluster:
+        server: https://10.0.0.1:6443
+        certificate-authority: clusty.ca
+      name: clusty
+    contexts:
+    - context:
+        cluster: clusty
+        user: kube
+      name: clustycon
+    current-context: clustycon
+    kind: Config
+    preferences: {}
+    users:
+    - name: kube
+      user:
+        password: changeme
+        username: kube
+    ```
+
 1. Use it.
 
     ```bash
