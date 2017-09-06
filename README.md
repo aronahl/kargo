@@ -30,7 +30,7 @@
 1. Configure the cluster.
 
     ```bash
-    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.7.3
+    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.7.3 -e kube_api_pwd=mysup3rs3cr3tp455w0rd
     ```
     
 1. Set up your local **unsecure** kubectl client in ~/.kube/config
@@ -53,7 +53,7 @@
     users:
     - name: kube
       user:
-        password: changeme
+        password: mysup3rs3cr3tp455w0rd
         username: kube
     ```
 1. Download the certificate for your cluster
@@ -84,7 +84,7 @@
     users:
     - name: kube
       user:
-        password: changeme
+        password: mysup3rs3cr3tp455w0rd
         username: kube
     ```
 
