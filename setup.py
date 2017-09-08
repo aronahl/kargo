@@ -1,4 +1,9 @@
 #!/usr/local/bin/python3.6 -u
+'''
+I use this script to deploy a 3-member cluster using parallels desktop pro.
+
+I already have a template VM called KubeBase with access for user ubuntu via a key called id_ecdsa.
+'''
 import os.path
 import re
 import subprocess
