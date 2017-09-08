@@ -6,27 +6,50 @@ import time
 from textwrap import dedent
 import os.path
 
-if __name__ == "__main__":
-    kubes = ("Kube001", "Kube002", "Kube003")
-    kube_addresses = []
-    for kube in kubes:
-        subprocess.check_call(args=("prlctl", "stop", kube, "--kill"))
-        subprocess.check_call(args=("prlctl", "delete", kube))
+def banner_message(msg):
+    mid = "##  %s  ##" % msg
+    tb = '#' * len(mid)
+    print("\n".join((tb,mid,tb)))
 
-        subprocess.check_call(args=("prlctl", "clone", "KubeBase", "--name", kube, "--linked"))
-        subprocess.check_call(args=("prlctl", "start", kube))
-        while subprocess.Popen(args=("prlctl", "exec", kube, "uptime")).wait() != 0:
+def stopVm(vm_name):
+    banner_message("Stopping %s" % vm_name)
+    subprocess.check_call(args=("prlctl", "stop", vm_name, "--kill"))
+
+def deleteVm(vm_name):
+    banner_message("Deleting %s" % vm_name)
+    subprocess.check_call(args=("prlctl", "delete", vm_name))
+
+def createVm(vm_name):
+    banner_message("Creating %s" % vm_name)
+    subprocess.check_call(args=("prlctl", "clone", "KubeBase", "--name", vm_name, "--linked"))
+    subprocess.check_call(args=("prlctl", "start", vm_name))
+    with open("/dev/null") as f:
+        while subprocess.Popen(args=("prlctl", "exec", vm_name, "uptime"), stdout=f, stderr=f).wait() != 0:
             time.sleep(1)
-        for address in [IPv4Address(x[-1]) for x in re.findall("(\s+inet addr:)([0-9.]+)", subprocess.check_output(args=("prlctl", "exec", kube, "ifconfig")).decode("utf-8"))]:
-            if not address.is_loopback:
-                kube_addresses.append(address.exploded)
-    assert len(kubes) == len(kube_addresses)
+
+def getVmAddress(vm_name):
+    banner_message("Getting address of %s" % vm_name)
+    for address in [IPv4Address(x[-1]) for x in re.findall("(\s+inet addr:)([0-9.]+)", subprocess.check_output(args=("prlctl", "exec", vm_name, "ifconfig")).decode("utf-8"))]:
+        if not address.is_loopback:
+            return address.exploded
+
+def createInventory(kube_addresses):
+    banner_message("Creating Inventory")
     subprocess.check_call(args=("docker", "volume", "rm", "kube-data", "--force"))
-    subprocess.check_call(args=["docker", "run", "--rm", "-i", "-v", "kube-data:/usr/local/share/kubespray", "aronahl/kargo", "python3", "./contrib/inventory_builder/inventory.py"] + kube_addresses)
+    subprocess.check_call(args=["docker", "run", "--rm", "-it", "-v", "kube-data:/usr/local/share/kubespray", "aronahl/kargo", "python3", "./contrib/inventory_builder/inventory.py"] + kube_addresses)
+
+def uploadKey():
+    banner_message("Uploading key")
     with open("kube_ecdsa") as f:
         subprocess.check_call(args=("docker", "run", "--rm", "-i", "-v", "kube-data:/data", "busybox", "tee", "/data/id_ecdsa"), stdin = f)
         subprocess.check_call(args=("docker", "run", "--rm", "-v", "kube-data:/data", "busybox", "chmod", "600", "/data/id_ecdsa"))
+
+def runAnsible():
+    banner_message("Running Ansible")
     subprocess.check_call(args=("docker", "run", "--name", "kuber-gooding", "-it", "--rm", "-v", "kube-data:/usr/local/share/kubespray", "aronahl/kargo", "ansible-playbook", "-i", "./inventory.cfg", "cluster.yml", "-b", "-v", "--private-key=./id_ecdsa", "-u", "ubuntu", "-e", "kube_version=v1.7.3", "-e", "kube_api_pwd=mysup3rs3cr3tp455w0rd"))
+
+def writeInsecureConfig():
+    banner_message("Writing Insecure Config")
     with open(os.path.expanduser("~/.kube/config"), "w") as f:
         f.write(dedent('''\
             apiVersion: v1
@@ -49,11 +72,17 @@ if __name__ == "__main__":
                 password: mysup3rs3cr3tp455w0rd
                 username: kube
                 ''' % kube_addresses[0]))
+
+def downloadCert():
+    banner_message("Downloading Cert")
     subprocess.check_call(args=("kubectl", "run", "ca", "--image=busybox", "--restart=Never", "--command", "cat", "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
     time.sleep(5)
     with open(os.path.expanduser("~/.kube/clusty.ca"), "w") as f:
         subprocess.check_call(args=("kubectl", "logs", "ca"), stdout = f)
     subprocess.check_call(args=("kubectl", "delete", "pod", "ca"))
+
+def writeSecureConfig(address):
+    banner_message("Wariting Secure Config")
     with open(os.path.expanduser("~/.kube/config"), "w") as f:
         f.write(dedent('''\
             apiVersion: v1
@@ -75,7 +104,38 @@ if __name__ == "__main__":
               user:
                 password: mysup3rs3cr3tp455w0rd
                 username: kube
-                ''' % kube_addresses[0]))
+                ''' % address))
+
+def writeConfigs(address):
+    writeInsecureConfig()
+    downloadCert()
+    writeSecureConfig(address)
+
+def pingKube():
+    banner_message("Pinging Kube")
     subprocess.check_call(args=("kubectl", "--namespace=kube-system", "get", "pods"))
+
+def installDashboard(address):
+    banner_message("Installing Dashboard at %s" % address)
     subprocess.check_call(args=("kubectl", "create", "-f", "https://raw.githubusercontent.com/kubernetes/dashboard/v1.6.3/src/deploy/kubernetes-dashboard.yaml"))
-    subprocess.check_call(args=("kubectl", "expose", "service", "--name", "kubernetes-dashboard-external", "--namespace=kube-system", "kubernetes-dashboard", "--external-ip=%s" % kube_addresses[0], "--port=9090"))
+    subprocess.check_call(args=("kubectl", "expose", "service", "--name", "kubernetes-dashboard-external", "--namespace=kube-system", "kubernetes-dashboard", "--external-ip=%s" % address, "--port=9090"))
+
+if __name__ == "__main__":
+    kubes = ("Kube001", "Kube002", "Kube003")
+    kube_addresses = []
+    for kube in kubes:
+        stopVm(kube)
+        deleteVm(kube)
+        createVm(kube)
+        kube_addresses.append(getVmAddress(kube))
+
+    assert len(kubes) == len(kube_addresses)
+
+    createInventory(kube_addresses)
+    uploadKey()
+    runAnsible()
+    writeConfigs(kube_addresses[0])
+    pingKube()
+    installDashboard(kube_addresses[0])
+    banner_message("Dashboard: http://%s:9090" % kube_addresses[0])
+
