@@ -108,7 +108,7 @@ def download_cert():
 
 
 def write_secure_config(address):
-    banner_message("Wariting Secure Config")
+    banner_message("Writing Secure Config")
     with open(os.path.expanduser("~/.kube/config"), "w") as f:
         f.write(dedent('''\
             apiVersion: v1
