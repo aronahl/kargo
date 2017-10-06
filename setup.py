@@ -20,12 +20,12 @@ def banner_message(msg):
 
 def stop_vm(vm_name):
     banner_message("Stopping %s" % vm_name)
-    subprocess.check_call(args=("prlctl", "stop", vm_name, "--kill"))
+    subprocess.Popen(args=("prlctl", "stop", vm_name, "--kill")).wait()
 
 
 def delete_vm(vm_name):
     banner_message("Deleting %s" % vm_name)
-    subprocess.check_call(args=("prlctl", "delete", vm_name))
+    subprocess.Popen(args=("prlctl", "delete", vm_name)).wait()
 
 
 def create_vm(vm_name):
