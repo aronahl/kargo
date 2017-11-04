@@ -65,11 +65,10 @@ def upload_key():
 def run_ansible():
     banner_message("Running Ansible")
     subprocess.check_call(args=(
-        "docker", "run", "-d", "--name", "kuber-gooding", "-it", "--rm", "-v", "kube-data:/usr/local/share/kubespray",
+        "docker", "run", "--name", "kuber-gooding", "-it", "--rm", "-v", "kube-data:/usr/local/share/kubespray",
         "aronahl/kargo", "ansible-playbook", "-i", "./inventory.cfg", "cluster.yml", "-b", "-v",
         "--private-key=./id_ecdsa",
         "-u", "ubuntu", "-e", "kube_version=v1.7.3", "-e", "kube_api_pwd=mysup3rs3cr3tp455w0rd"))
-    subprocess.check_call(args=("docker", "logs", "-tf", "kuber-gooding"))
 
 
 def write_insecure_config(address):
