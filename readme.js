@@ -16,7 +16,7 @@ const server = http.createServer((req,res)=> {
         });
     }
     else if (url == "/") {
-        child_process.exec("pandoc -f markdown_github -t html5 --css pandoc.css README.md", (error, stdout, stderr) => {
+        child_process.exec("pandoc -s -f markdown_github -t html5 --css pandoc.css README.md", (error, stdout, stderr) => {
             if (error) {
                 res.statusCode = 500;
                 res.setHeader('Content-Type', 'text/plain');
