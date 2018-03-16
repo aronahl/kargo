@@ -1,4 +1,4 @@
-# Easy Kubernetes Cluster on Ubuntu 16.04 Using Kubespray (Formerly Kargo) v2.2.0.
+# Easy Kubernetes Cluster on Ubuntu 16.04 Using Kubespray (Formerly Kargo) v2.4.0.
 
 ## Requirements
 1. Three Ubuntu 16.04 VMs or Bare Metal installs with **no swap**.  I used Parallels VMs with 4G RAM and 4 Cores each.
