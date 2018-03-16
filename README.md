@@ -38,7 +38,7 @@
 1. Download the config for your local kubectl
 
 	```bash
-	$ ssh -i kube_ecdsa vagrant@10.0.0.1 sudo cat /etc/kubernetes/admin.conf > ~/.kube/config
+	$ ssh -i kube_ecdsa ubuntu@10.0.0.1 sudo cat /etc/kubernetes/admin.conf > ~/.kube/config
 	```
 1. Use it.
 
