@@ -7,7 +7,7 @@ const server = http.createServer((req,res)=> {
     var url = req.url;
     if (url == "/pandoc.css") {
         let body = [];
-        fs.createReadStream('pandoc.css').on('data', (chunk) => {
+        fs.createReadStream(__dirname + '/pandoc.css').on('data', (chunk) => {
             body.push(chunk);
         }).on('end', () => {
             res.statusCode = 200;

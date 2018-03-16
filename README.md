@@ -1,7 +1,7 @@
 # Easy Kubernetes Cluster on Ubuntu 16.04 Using Kubespray (Formerly Kargo) v2.2.0.
 
 ## Requirements
-1. Three Ubuntu 16.04 VMs or Bare Metal installs.  I used Parallels VMs with 4G RAM and 4 Cores each.
+1. Three Ubuntu 16.04 VMs or Bare Metal installs with **no swap**.  I used Parallels VMs with 4G RAM and 4 Cores each.
     * The following packages should be installed:
         * python
         * python-minimal
@@ -30,90 +30,42 @@
 1. Configure the cluster.
 
     ```bash
-    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa -u ubuntu -e kube_version=v1.7.3 -e kube_api_pwd=mysup3rs3cr3tp455w0rd
+    $ docker run --rm -it -v kube-data:/usr/local/share/kubespray aronahl/kargo \
+      ansible-playbook -i ./inventory.cfg cluster.yml -b -v --private-key=./id_ecdsa \
+      -u ubuntu -e kube_version=v1.9.2 -e kube_api_pwd=mysup3rs3cr3tp455w0rd
     ```
     
-1. Set up your local **unsecure** kubectl client in ~/.kube/config
+1. Download the config for your local kubectl
 
-    ```yaml
-    apiVersion: v1
-    clusters:
-    - cluster:
-        server: https://10.0.0.1:6443
-        insecure-skip-tls-verify: true
-      name: clusty
-    contexts:
-    - context:
-        cluster: clusty
-        user: kube
-      name: clustycon
-    current-context: clustycon
-    kind: Config
-    preferences: {}
-    users:
-    - name: kube
-      user:
-        password: mysup3rs3cr3tp455w0rd
-        username: kube
-    ```
-1. Download the certificate for your cluster
-
-    ```bash
-    $ kubectl run ca --image=busybox --restart=Never --command cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-    $ kubectl logs ca > ~/.kube/clusty.ca
-    $ kubectl delete pod ca
-    ```
-
-1. Configure kubectl for **secure** access in ~/.kube/config
-
-    ```yaml
-    apiVersion: v1
-    clusters:
-    - cluster:
-        server: https://10.0.0.1:6443
-        certificate-authority: clusty.ca
-      name: clusty
-    contexts:
-    - context:
-        cluster: clusty
-        user: kube
-      name: clustycon
-    current-context: clustycon
-    kind: Config
-    preferences: {}
-    users:
-    - name: kube
-      user:
-        password: mysup3rs3cr3tp455w0rd
-        username: kube
-    ```
-
+	```bash
+	$ ssh -i kube_ecdsa vagrant@10.0.0.1 sudo cat /etc/kubernetes/admin.conf > ~/.kube/config
+	```
 1. Use it.
 
     ```bash
 	$ kubectl --namespace=kube-system get pods
-	NAME                                  READY     STATUS    RESTARTS   AGE
-	dnsmasq-1375889904-njj7p              1/1       Running   0          2m
-	dnsmasq-autoscaler-3605072793-x5q1l   1/1       Running   0          2m
-	kube-apiserver-kube001                1/1       Running   0          2m
-	kube-apiserver-kube002                1/1       Running   0          2m
-	kube-controller-manager-kube001       1/1       Running   0          2m
-	kube-controller-manager-kube002       1/1       Running   0          2m
-	kube-proxy-kube001                    1/1       Running   0          2m
-	kube-proxy-kube002                    1/1       Running   0          1m
-	kube-proxy-kube003                    1/1       Running   0          1m
-	kube-scheduler-kube001                1/1       Running   0          2m
-	kube-scheduler-kube002                1/1       Running   0          2m
-	kubedns-1519522227-bm956              3/3       Running   0          2m
-	kubedns-autoscaler-1428750645-6nbhq   1/1       Running   0          2m
-	nginx-proxy-kube003                   1/1       Running   0          2m
+	NAME                                    READY     STATUS    RESTARTS   AGE
+	calico-node-894bv                       1/1       Running   0          20m
+	calico-node-gxws8                       1/1       Running   0          20m
+	calico-node-w6sxv                       1/1       Running   0          20m
+	kube-apiserver-node1                    1/1       Running   0          19m
+	kube-apiserver-node2                    1/1       Running   0          19m
+	kube-controller-manager-node1           1/1       Running   0          20m
+	kube-controller-manager-node2           1/1       Running   0          20m
+	kube-dns-79d99cdcd5-ggh9c               3/3       Running   0          19m
+	kube-dns-79d99cdcd5-w6tlb               3/3       Running   0          19m
+	kube-proxy-node1                        1/1       Running   0          19m
+	kube-proxy-node2                        1/1       Running   0          19m
+	kube-proxy-node3                        1/1       Running   0          19m
+	kube-scheduler-node1                    1/1       Running   0          20m
+	kube-scheduler-node2                    1/1       Running   0          20m
+	kubedns-autoscaler-5564b5585f-fjcnt     1/1       Running   0          19m
+	kubernetes-dashboard-6bbb86ffc4-5bdr6   1/1       Running   0          19m
+	nginx-proxy-node3                       1/1       Running   0          19m
     ```
+1. Check out the UI
 
-1. Maybe install the UI.
-
-    ```bash
-    $ kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.6.3/src/deploy/kubernetes-dashboard.yaml
-    $ kubectl expose service --name kubernetes-dashboard-external --namespace=kube-system kubernetes-dashboard --external-ip=10.0.0.1 --port=9090
-    ```
-    
-    Browse to http://10.0.0.1:9090/
+	```bash
+	$ kubectl proxy
+	```
+	Visit [http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login](http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/login) and select _skip_.
